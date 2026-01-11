@@ -44,3 +44,26 @@ export const updateUserRole = async (req, res) => {
     res.status(500).json({ message: "Failed to update user role" });
   }
 };
+
+//getting all Stats only admin
+
+export const getAllStats = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalRequests = await Request.countDocuments();
+    const totalPendingRequests = await Request.countDocuments({ status: "pending" });
+    const totalApprovedRequests = await Request.countDocuments({ status: "approved" });
+    const totalRejectedRequests = await Request.countDocuments({ status: "rejected" });
+    res.json({
+      totalUsers,
+      totalRequests,
+      totalPendingRequests,
+      totalApprovedRequests,
+      totalRejectedRequests,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch stats" });
+  }
+};
+
+//delete user only admin
