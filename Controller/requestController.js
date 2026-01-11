@@ -27,11 +27,19 @@ export const createRequest = async (req, res) => {
     //getting user request
     export const getRequests = async (req, res) => {
         try {
-            const requests = await Request.find({ createdBy: req.user._id });
+            const requests = await Request.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
             res.json(requests);
         } catch (error) {
             res.status(500).json({ message: "Server error" });
         }
     };
 
-    getting userREquest completed
+  //getting manager request
+    export const getManagerRequests = async (req, res) => {
+        try {
+            const requests = await Request.find({ assignedTo: req.user._id }).populate("createdBy","name email");
+            res.json(requests);
+        } catch (error) {
+            res.status(500).json({ message: "Server error" });
+        }
+    };
