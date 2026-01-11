@@ -43,3 +43,29 @@ export const createRequest = async (req, res) => {
             res.status(500).json({ message: "Server error" });
         }
     };
+
+// MANAGER → approve / reject
+export const updateRequestStatus = async (req, res) => {
+  try {
+    const { status, remark } = req.body;
+
+    const request = await Request.findById(req.params.id);
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    // manager can only update their own assigned requests
+    if (request.assignedTo.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    request.status = status;
+    request.remark = remark;
+    await request.save();
+
+    res.json(request);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update request" });
+  }
+};
