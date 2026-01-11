@@ -69,3 +69,17 @@ export const updateRequestStatus = async (req, res) => {
     res.status(500).json({ message: "Failed to update request" });
   }
 };
+
+
+// ADMIN → get all requests
+export const getAllRequests = async (req, res) => {
+  try {
+    const requests = await Request.find()
+      .populate("createdBy", "name role")
+      .populate("assignedTo", "name role");
+
+    res.json(requests);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch all requests" });
+  }
+};
