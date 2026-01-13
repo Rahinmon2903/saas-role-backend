@@ -6,13 +6,13 @@ import Request from "../Model/requestSchema.js";
 export const createRequest = async (req, res) => {
         try {
             // const { title, description } = req.body;
-            const { title, description, managerId} = req.body;
+            const { title, description} = req.body;
             //
             const request = new Request({
                 title,
                 description,
                 createdBy:req.user._id,
-                assignedTo:managerId,
+             
                 
             });
            //save

@@ -23,7 +23,7 @@ const requestSchema = new mongoose.Schema(
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true, // manager
+      default: null,
     },
     remark: {
       type: String,
