@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./Route/authRoute.js";
 import requestRoutes from "./Route/requestRoute.js";
 import adminRoutes from "./Route/adminRoute.js";
+import notificationRoutes from "./Route/notificationRoute.js";
 
 //config
 dotenv.config();
@@ -20,6 +21,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/notifications", notificationRoutes);
+
 //port
 const PORT = process.env.PORT || 5000;
 

@@ -1,3 +1,4 @@
+import Notification from "../Model/notificationSchema.js";
 import Request from "../Model/requestSchema.js";
 import User from "../Model/userSchema.js";
 
@@ -80,6 +81,11 @@ export const updateRequestStatus = async (req, res) => {
     request.remark = remark;
     request.history.push({ action: status, by: req.user._id, remark: remark });
     await request.save();
+    await Notification.create({
+      user: request.createdBy,
+      message: `Your request "${request.title}" was ${status}`,
+      link: "/requests",
+    });
 
     res.json(request);
   } catch (error) {
@@ -124,7 +130,13 @@ export const assignRequest = async (req, res) => {
 
     request.assignedTo = managerId;
     request.history.push({ action: "assigned", by: req.user._id, remark: `Assigned to ${manager.name}` });
+
     await request.save();
+    await Notification.create({
+      user: managerId,
+      message: `You have a new request assigned to you by ${req.user.name} and the title is ${request.title}`,
+      link: "/requests",
+    })
 
     res.json({
       message: "Request assigned successfully",
