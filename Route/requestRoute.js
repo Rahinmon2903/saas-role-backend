@@ -1,6 +1,6 @@
 import express from "express";
 import { protect } from "../Middleware/authMiddleware.js";
-import { createRequest, getAllRequests, getManagerRequests, getRequests, updateRequestStatus } from "../Controller/requestController.js";
+import { assignRequest, createRequest, getAllRequests, getManagerRequests, getRequests, updateRequestStatus } from "../Controller/requestController.js";
 import { adminRole, managerRole } from "../Middleware/roleMiddleware.js";
 
 
@@ -16,5 +16,6 @@ router.put("/:id",protect,managerRole,updateRequestStatus);
 
 //admin access
 router.get("/all",protect,adminRole,getAllRequests);
+router.put("/:id/assign",protect,adminRole,assignRequest);
 
 export default router;
