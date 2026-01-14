@@ -5,33 +5,39 @@ import User from "../Model/userSchema.js";
 //create request
 
 export const createRequest = async (req, res) => {
-        try {
-            // const { title, description } = req.body;
-            const { title, description} = req.body;
-            //
-            const request = new Request({
-                title,
-                description,
-                createdBy:req.user._id,
-             
-                
-            });
-           //save
-            await request.save();
-              //res
-            res.status(201).json({ message: "Request created successfully", request });
-        } catch (error) {
-            res.status(500).json({ message: "Server error" });
-        }
-    };
+  try {
+    // const { title, description } = req.body;
+    const { title, description } = req.body;
+    //
+    const request = new Request({
+      title,
+      description,
+      createdBy: req.user._id,
+      history: [
+        {
+          action: "created",
+          by: req.user._id,
+        },
+      ],
 
-    //getting user request
-  export const getRequests = async (req, res) => {
+
+    });
+    //save
+    await request.save();
+    //res
+    res.status(201).json({ message: "Request created successfully", request });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+//getting user request
+export const getRequests = async (req, res) => {
   try {
     const requests = await Request.find({
       createdBy: req.user._id,
     })
-      .populate("assignedTo", "name email")
+      .populate("assignedTo", "name email").populate("history.by", "name role")
       .sort({ updatedAt: -1 });
 
     res.json(requests);
@@ -39,15 +45,15 @@ export const createRequest = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-  //getting manager request
-    export const getManagerRequests = async (req, res) => {
-        try {
-            const requests = await Request.find({ assignedTo: req.user._id }).populate("createdBy","name email");
-            res.json(requests);
-        } catch (error) {
-            res.status(500).json({ message: "Server error" });
-        }
-    };
+//getting manager request
+export const getManagerRequests = async (req, res) => {
+  try {
+    const requests = await Request.find({ assignedTo: req.user._id }).populate("createdBy", "name email").populate("history.by", "name role");
+    res.json(requests);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // MANAGER → approve / reject
 export const updateRequestStatus = async (req, res) => {
@@ -59,6 +65,11 @@ export const updateRequestStatus = async (req, res) => {
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
     }
+    if (request.status !== "pending") {
+      return res.status(400).json({
+        message: "Request already processed",
+      });
+    }
 
     // manager can only update their own assigned requests
     if (request.assignedTo.toString() !== req.user._id.toString()) {
@@ -67,6 +78,7 @@ export const updateRequestStatus = async (req, res) => {
 
     request.status = status;
     request.remark = remark;
+    request.history.push({ action: status, by: req.user._id, remark: remark });
     await request.save();
 
     res.json(request);
@@ -81,7 +93,7 @@ export const getAllRequests = async (req, res) => {
   try {
     const requests = await Request.find()
       .populate("createdBy", "name role")
-      .populate("assignedTo", "name role");
+      .populate("assignedTo", "name role").populate("history.by", "name role");;
 
     res.json(requests);
   } catch (error) {
@@ -106,6 +118,7 @@ export const assignRequest = async (req, res) => {
     }
 
     request.assignedTo = managerId;
+    request.history.push({ action: "assigned", by: req.user._id, remark: `Assigned to ${manager.name}` });
     await request.save();
 
     res.json({
