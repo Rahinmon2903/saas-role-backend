@@ -84,4 +84,35 @@ export const deleteUser = async (req, res) => {
     }
 };
 
+//getting manager workoad
+
+export const getManagerWorkload = async (req, res) => {
+  try {
+    const managers = await User.find({ role: "manager" }).select(
+      "name email"
+    );
+
+    const workload = await Promise.all(
+      managers.map(async (m) => {
+        const pendingCount = await Request.countDocuments({
+          assignedTo: m._id,
+          status: "pending",
+        });
+
+        return {
+          _id: m._id,
+          name: m.name,
+          email: m.email,
+          pendingCount,
+        };
+      })
+    );
+
+    res.json(workload);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load workload" });
+  }
+};
+
+
 

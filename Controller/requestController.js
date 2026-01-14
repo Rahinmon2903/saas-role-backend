@@ -111,6 +111,11 @@ export const assignRequest = async (req, res) => {
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
     }
+    if (request.status !== "pending") {
+      return res.status(400).json({
+        message: "Cannot assign a processed request",
+      });
+    }
 
     const manager = await User.findById(managerId);
     if (!manager || manager.role !== "manager") {
