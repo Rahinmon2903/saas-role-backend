@@ -25,6 +25,17 @@ export const createRequest = async (req, res) => {
     });
     //save
     await request.save();
+    
+    // NOTIFY ALL ADMINS
+    const admins = await User.find({ role: "admin" }).select("_id");
+
+    const notifications = admins.map((admin) => ({
+      user: admin._id,
+      message: `New request created by ${req.user.name}: "${title}"`,
+      link: "/requests",
+    }));
+
+    await Notification.insertMany(notifications);
     //res
     res.status(201).json({ message: "Request created successfully", request });
   } catch (error) {
