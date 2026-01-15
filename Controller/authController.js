@@ -93,7 +93,7 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
 
-    const resetUrl = `https://saas-role-front-end.vercel.app/reset-password/${resetToken}`;
+    const resetUrl = `https://saas-role-front-b3o9y2fsp-rahin-mon-ss-projects.vercel.app/reset-password/${resetToken}`;
 
 const htmlContent = `
 <!DOCTYPE html>
