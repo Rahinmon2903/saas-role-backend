@@ -9,15 +9,15 @@ apiKey.apiKey = process.env.BREVO_API_KEY;
 
 const tranEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
-const sendEmail = async (to, subject, text) => {
+const sendEmail = async (to, subject, htmlContent) => {
   const emailData = {
     sender: {
-      name: "Rahin Mon",
+      name: "RBAC Control",
       email: process.env.PASS_MAIL,
     },
     to: [{ email: to }],
     subject,
-    textContent: text,
+    htmlContent,
   };
 
   await tranEmailApi.sendTransacEmail(emailData);
