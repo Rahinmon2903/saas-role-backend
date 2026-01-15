@@ -93,7 +93,7 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
 
-    const resetUrl = `https://ecommerce-front-end-rtyf.vercel.app/reset-password/${resetToken}`;
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
 
     const message = `
 Hello ${user.name},
