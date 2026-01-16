@@ -61,9 +61,12 @@ export const getRequests = async (req, res) => {
 //getting manager request
 export const getManagerRequests = async (req, res) => {
   try {
+    //getting manager requests and populate is just for displaying data in front-end
     const requests = await Request.find({ assignedTo: req.user._id }).populate("createdBy", "name email").populate("history.by", "name role");
+    //response
     res.json(requests);
   } catch (error) {
+    //error
     res.status(500).json({ message: "Server error" });
   }
 };
