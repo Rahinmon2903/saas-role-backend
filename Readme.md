@@ -80,10 +80,9 @@ Brevo (SendinBlue) for emails
 
 JWT-based authentication
 
-🧩 Architecture Diagram (Mermaid – GitHub ready)
+🧩 Architecture Diagram 
 
-✅ GitHub renders this automatically
-Just paste this into your README
+
 
 flowchart LR
     User[👤 User Browser]
