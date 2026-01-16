@@ -7,22 +7,23 @@ import crypto from "crypto";
 // REGISTER (NO TOKEN)
 export const register = async (req, res) => {
   try {
+    // Destructuring
     const { name, email, password } = req.body;
-
+    // Check if user already exists
     const exists = await User.findOne({ email });
     if (exists) {
       return res.status(400).json({ message: "User already exists" });
     }
-
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
+    // Create user
     await User.create({
       name,
       email,
       password: hashedPassword,
 
     });
-
+   //success message
     res.status(201).json({
       message: "User registered successfully",
     });
@@ -34,24 +35,25 @@ export const register = async (req, res) => {
 // LOGIN (TOKEN HERE)
 export const login = async (req, res) => {
   try {
+    // Destructuring
     const { email, password } = req.body;
-
+    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
+    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
+    // Create token
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-
+    //sending response to frontend so they can store it in local storage and perform conditional rendering
     res.json({
       token,
       user: {
@@ -68,8 +70,9 @@ export const login = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   try {
+    // Destructuring
     const { email } = req.body;
-
+    // Check if user exists
     const user = await User.findOne({ email });
 
     // Always return same response
@@ -87,9 +90,9 @@ export const forgotPassword = async (req, res) => {
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
-
+     // Set token expiration
     user.resetTokenExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
-
+    // Save user
     await user.save();
 
 
@@ -171,14 +174,14 @@ const htmlContent = `
   </body>
 </html>
 `;
-
+//sending email
 await sendEmail(
   user.email,
   "Reset Your Password",
   htmlContent
 );
 
-
+   // Always return same response
     return res.status(200).json({
       message: "If the email exists, a reset link has been sent",
     });
@@ -197,10 +200,13 @@ await sendEmail(
 
 //reset
 export const resetPassword = async (req, res) => {
+  // Getting token from url
   const { token } = req.params;
+  // Destructuring
   const { password } = req.body;
 
   try {
+    //checking if the password is at least 8 characters
     if (password.length < 8) {
       return res.status(400).json({
         message: "Password must be at least 8 characters",
@@ -229,7 +235,7 @@ export const resetPassword = async (req, res) => {
     user.resetTokenExpire = null;
     //saving
     await user.save();
-
+    //success message
     return res.status(200).json({
       message: "Password reset successfully"
     });
