@@ -9,7 +9,7 @@ export const createRequest = async (req, res) => {
   try {
     // const { title, description } = req.body;
     const { title, description } = req.body;
-    //
+    //creating new request
     const request = new Request({
       title,
       description,
@@ -28,7 +28,7 @@ export const createRequest = async (req, res) => {
     
     // NOTIFY ALL ADMINS
     const admins = await User.find({ role: "admin" }).select("_id");
-
+    
     const notifications = admins.map((admin) => ({
       user: admin._id,
       message: `New request created by ${req.user.name}: "${title}"`,
@@ -46,12 +46,13 @@ export const createRequest = async (req, res) => {
 //getting user request
 export const getRequests = async (req, res) => {
   try {
+    //getting user requests
     const requests = await Request.find({
       createdBy: req.user._id,
     })
       .populate("assignedTo", "name email").populate("history.by", "name role")
       .sort({ updatedAt: -1 });
-
+  //res
     res.json(requests);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
