@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const requestSchema = new mongoose.Schema(
   {
-    // title of the rquest
+    // title of the request
     title: {
       type: String,
       required: true,
