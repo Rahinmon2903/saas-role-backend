@@ -10,6 +10,7 @@ export const createRequest = async (req, res) => {
     // const { title, description } = req.body;
     const { title, description } = req.body;
     //creating new request
+    //the request can only created by user who is logged in and role should be user
     const request = new Request({
       title,
       description,
@@ -28,13 +29,13 @@ export const createRequest = async (req, res) => {
     
     // NOTIFY ALL ADMINS
     const admins = await User.find({ role: "admin" }).select("_id");
-    
+    //sending notification for all the admins in system
     const notifications = admins.map((admin) => ({
       user: admin._id,
       message: `New request created by ${req.user.name}: "${title}"`,
       link: "/requests",
     }));
-
+    //insterting all the notification in database
     await Notification.insertMany(notifications);
     //res
     res.status(201).json({ message: "Request created successfully", request });
@@ -42,7 +43,7 @@ export const createRequest = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
+//the user need the info about the manger and the manager need the info about user
 //getting user request
 export const getRequests = async (req, res) => {
   try {
@@ -107,6 +108,36 @@ export const updateRequestStatus = async (req, res) => {
     res.status(500).json({ message: "Failed to update request" });
   }
 };
+//output of updateRequestStatus
+/*
+{
+  "_id": "65f8ab12",
+
+  "title": "Laptop Issue",
+
+  "status": "approved",
+
+  "remark": "Hardware problem verified",
+
+  "createdBy": "user123",
+
+  "assignedTo": "manager456",
+
+  "history": [
+    {
+      "action": "approved",
+      "by": "manager456",
+      "remark": "Hardware problem verified",
+      "_id": "hist789",
+      "createdAt": "2026-02-11T10:15:30.000Z"
+    }
+  ],
+
+  "createdAt": "2026-02-10T08:00:00.000Z",
+
+  "updatedAt": "2026-02-11T10:15:30.000Z"
+}
+*/
 
 
 // ADMIN → get all requests
@@ -114,13 +145,53 @@ export const getAllRequests = async (req, res) => {
   try {
     const requests = await Request.find()
       .populate("createdBy", "name role")
-      .populate("assignedTo", "name role").populate("history.by", "name role");;
+      .populate("assignedTo", "name role").populate("history.by", "name role");
 
     res.json(requests);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch all requests" });
   }
 };
+//output of getAllRequests
+/*
+[
+  {
+    "_id": "req1",
+    "title": "Laptop Issue",
+
+    "createdBy": {
+      "_id": "user1",
+      "name": "Arjun",
+      "role": "employee"
+    },
+
+    "assignedTo": {
+      "_id": "manager1",
+      "name": "Rahul",
+      "role": "manager"
+    },
+
+    "history": [
+      {
+        "action": "Created",
+        "by": {
+          "_id": "user1",
+          "name": "Arjun",
+          "role": "employee"
+        }
+      },
+      {
+        "action": "Assigned",
+        "by": {
+          "_id": "admin1",
+          "name": "Admin Kumar",
+          "role": "admin"
+        }
+      }
+    ]
+  }
+]
+*/
 
 //assign request
 // ADMIN → assign request to manager

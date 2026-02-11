@@ -12,6 +12,7 @@ const requestSchema = new mongoose.Schema(
     description: {
       type: String,
       required: true,
+      //trim is used to remove extra spaces from a string
       trim: true,
     },
 
