@@ -54,23 +54,30 @@ export const updateUserRole = async (req, res) => {
 //getting all Stats only admin
 
 export const getAllStats = async (req, res) => {
-    try {
-        const totalUsers = await User.countDocuments();
-        const totalRequests = await Request.countDocuments();
-        const totalPendingRequests = await Request.countDocuments({ status: "pending" });
-        const totalApprovedRequests = await Request.countDocuments({ status: "approved" });
-        const totalRejectedRequests = await Request.countDocuments({ status: "rejected" });
-        res.json({
-            totalUsers,
-            totalRequests,
-            totalPendingRequests,
-            totalApprovedRequests,
-            totalRejectedRequests,
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch stats" });
-    }
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalRequests = await Request.countDocuments();
+
+    const totalOpen = await Request.countDocuments({ status: "open" });
+    const totalInProgress = await Request.countDocuments({ status: "in_progress" });
+    const totalResolved = await Request.countDocuments({ status: "resolved" });
+    const totalClosed = await Request.countDocuments({ status: "closed" });
+    const totalRejected = await Request.countDocuments({ status: "rejected" });
+
+    res.json({
+      totalUsers,
+      totalRequests,
+      totalOpen,
+      totalInProgress,
+      totalResolved,
+      totalClosed,
+      totalRejected,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch stats" });
+  }
 };
+
 
 //delete user only admin
 
@@ -94,25 +101,24 @@ export const deleteUser = async (req, res) => {
 };
 
 //getting manager workoad
-
 export const getManagerWorkload = async (req, res) => {
   try {
-    const managers = await User.find({ role: "manager" }).select(
-      "name email"
-    );
+    const managers = await User.find({ role: "manager" })
+      .select("name email");
 
     const workload = await Promise.all(
       managers.map(async (m) => {
-        const pendingCount = await Request.countDocuments({
+
+        const activeCount = await Request.countDocuments({
           assignedTo: m._id,
-          status: "pending",
+          status: { $in: ["open", "in_progress"] },
         });
 
         return {
           _id: m._id,
           name: m.name,
           email: m.email,
-          pendingCount,
+          pendingCount: activeCount, // keep name for UI compatibility
         };
       })
     );
@@ -122,6 +128,3 @@ export const getManagerWorkload = async (req, res) => {
     res.status(500).json({ message: "Failed to load workload" });
   }
 };
-
-
-
