@@ -16,9 +16,11 @@ export const createRequest = async (req, res) => {
       high: 2,
       critical: 1,
     };
-   
+   //getting current date time month year etc
     const dueDate=new Date();
+    //in this part we are only going to updated date so setDate
     dueDate.setDate(
+      //only getting date and increase based on priority
       dueDate.getDate() + slaMap[(priority ||"medium")]
     )
     //creating new request
@@ -223,7 +225,7 @@ export const getAllRequests = async (req, res) => {
 export const assignRequest = async (req, res) => {
   try {
     const { managerId } = req.body;
-    console.log("managerId:", managerId);
+    
 
     /* FIND TICKET */
 
