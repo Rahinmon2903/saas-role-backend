@@ -7,13 +7,28 @@ import User from "../Model/userSchema.js";
 
 export const createRequest = async (req, res) => {
   try {
-    // const { title, description } = req.body;
-    const { title, description } = req.body;
+    // const { title, description,priority,category } = req.body;
+    const { title, description ,priority,category} = req.body;
+
+      const slaMap = {
+      low: 5,
+      medium: 3,
+      high: 2,
+      critical: 1,
+    };
+   
+    const dueDate=new Date();
+    dueDate.setDate(
+      dueDate.getDate() + slaMap[(priority ||"medium")]
+    )
     //creating new request
     //the request can only created by user who is logged in and role should be user
     const request = new Request({
       title,
       description,
+      priority,
+      category,
+      dueDate,
       createdBy: req.user._id,
       history: [
         {
@@ -80,11 +95,11 @@ export const updateRequestStatus = async (req, res) => {
     const request = await Request.findById(req.params.id);
 
     if (!request) {
-      return res.status(404).json({ message: "Request not found" });
+      return res.status(404).json({ message: "Ticket not found" });
     }
-    if (request.status !== "pending") {
+    if (request.status === "resolved" || request.status === "closed") {
       return res.status(400).json({
-        message: "Request already processed",
+        message: "Ticket already processed",
       });
     }
 
@@ -92,9 +107,16 @@ export const updateRequestStatus = async (req, res) => {
     if (request.assignedTo.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Access denied" });
     }
+    if(request.status === "resolved" && !remark.trim()){
+      return res.status(400).json({ message: "resolution mark required for resolved tickets" });
+    }
 
     request.status = status;
     request.remark = remark;
+    if(request.status === "resolved"){
+      request.resolution=remark,
+      request.closedAt=new Date()
+    }
     request.history.push({ action: status, by: req.user._id, remark: remark });
     await request.save();
     await Notification.create({
@@ -102,10 +124,13 @@ export const updateRequestStatus = async (req, res) => {
       message: `Your request "${request.title}" was ${status}`,
       link: "/requests",
     });
-
-    res.json(request);
+       res.status(200).json({
+      message: "Ticket updated successfully",
+      request,
+    });
+   
   } catch (error) {
-    res.status(500).json({ message: "Failed to update request" });
+    res.status(500).json({ message: "Failed to update Ticket" });
   }
 };
 //output of updateRequestStatus
@@ -198,37 +223,67 @@ export const getAllRequests = async (req, res) => {
 export const assignRequest = async (req, res) => {
   try {
     const { managerId } = req.body;
+    console.log("managerId:", managerId);
+
+    /* FIND TICKET */
 
     const request = await Request.findById(req.params.id);
+
     if (!request) {
-      return res.status(404).json({ message: "Request not found" });
-    }
-    if (request.status !== "pending") {
-      return res.status(400).json({
-        message: "Cannot assign a processed request",
+      return res.status(404).json({
+        message: "Ticket not found",
       });
     }
 
-    const manager = await User.findById(managerId);
-    if (!manager || manager.role !== "manager") {
-      return res.status(400).json({ message: "Invalid manager" });
+    /* VALIDATE STATUS */
+
+    if (request.status !== "open") {
+      return res.status(400).json({
+        message: "Only open tickets can be assigned",
+      });
     }
 
+    /*  VALIDATE MANAGER */
+
+    const manager = await User.findById(managerId);
+
+    if (!manager || manager.role !== "manager") {
+      return res.status(400).json({
+        message: "Invalid manager",
+      });
+    }
+
+    /*  UPDATE TICKET */
+
     request.assignedTo = managerId;
-    request.history.push({ action: "assigned", by: req.user._id, remark: `Assigned to ${manager.name}` });
+    request.status = "in_progress";
+
+    request.history.push({
+      action: "assigned",
+      by: req.user._id,
+      remark: `Assigned to ${manager.name}`,
+    });
 
     await request.save();
+
+    /* NOTIFY MANAGER */
+
     await Notification.create({
       user: managerId,
-      message: `You have a new request assigned to you by ${req.user.name} and the title is ${request.title}`,
+      message: `New ticket assigned: "${request.title}"`,
       link: "/requests",
-    })
+    });
+
+    /* RESPONSE */
 
     res.json({
-      message: "Request assigned successfully",
+      message: "Ticket assigned successfully",
       request,
     });
+
   } catch (error) {
-    res.status(500).json({ message: "Failed to assign request" });
+    res.status(500).json({
+      message: "Failed to assign ticket",
+    });
   }
 };

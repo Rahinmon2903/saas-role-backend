@@ -1,5 +1,6 @@
 import Notification from "../Model/notificationSchema.js";
 
+//getting all the notification of al particular user
 export const getMyNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({

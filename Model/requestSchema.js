@@ -18,10 +18,32 @@ const requestSchema = new mongoose.Schema(
 
      // status of the request
     status: {
-      type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
-    },
+  type: String,
+  enum: ["open", "in_progress", "resolved", "closed", "rejected"],
+  default: "open",
+},
+priority: {
+  type: String,
+  enum: ["low", "medium", "high", "critical"],
+  default: "medium",
+},
+
+category: {
+  type: String,
+  enum: ["hardware", "software", "network", "access", "other"],
+  default: "other",
+},
+
+dueDate: Date,
+
+resolution: {
+  type: String,
+  default: "",
+  trim: true,
+},
+
+closedAt: Date,
+
 
     // user who created the request
     createdBy: {
@@ -46,11 +68,18 @@ const requestSchema = new mongoose.Schema(
     history: [
       {
         //created, assigned, approved, rejected 1)staged created, 2)assigned, 3)approved, 4)rejected
-        action: {
-          type: String,
-          enum: ["created", "assigned", "approved", "rejected"],
-          required: true,
-        },
+      action: {
+  type: String,
+  enum: [
+    "created",
+    "assigned",
+    "in_progress",
+    "resolved",
+    "closed",
+    "rejected"
+  ],
+  required: true,
+},
         //user who performed the action 1)User who created the request, 2)admin who assigned the request, 3)manager who approved the request, 4)manager who rejected the request
         by: {
           type: mongoose.Schema.Types.ObjectId,
