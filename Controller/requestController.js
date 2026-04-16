@@ -109,7 +109,7 @@ export const updateRequestStatus = async (req, res) => {
     if (request.assignedTo.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Access denied" });
     }
-    if(request.status === "resolved" && !remark.trim()){
+    if (status === "resolved" && (!remark || !remark.trim())) {
       return res.status(400).json({ message: "resolution mark required for resolved tickets" });
     }
 
